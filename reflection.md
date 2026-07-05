@@ -1,6 +1,7 @@
 # PawPal+ Project Reflection
 
 ## 1. System Design
+The three core actions that users can perform in PawPal+ are: (1) Add the owner and pet info, (2) add and editing the task regarding the pet, and (3) creating an schedule based on the owners schedule. The system design should support these actions while ensuring that the scheduling logic is efficient and user-friendly.
 
 **a. Initial design**
 
