@@ -5,15 +5,17 @@ The three core actions that users can perform in PawPal+ are: (1) Add the owner 
 
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+Owner — Represents the pet owner and their available time window. Chosen to handle Action 1 (owner info) and because the scheduler needs to know when the owner is free to build a plan.
+Pet — Represents the pet and holds its own list of tasks. Chosen to keep pet identity separate from owner, and to group tasks logically under the pet they belong to (supports multi-pet households).
+Task — Represents a single care activity (walk, feeding, meds, etc.) with duration and priority. Chosen because it's the core unit of work — everything the scheduler places into the plan is a Task. Covers Action 2 (add/edit tasks).
+Scheduler — Pure logic engine that takes an Owner + Pet and produces a plan. Chosen to keep scheduling logic separate from data (Owner/Pet/Task), making it easy to test independently and swap/improve the algorithm without touching the UI. Covers Action 3 (create schedule).
+
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+All four relationships from the diagram are present in the skeleton. Nothing's missing structurally
 
----
+
 
 ## 2. Scheduling Logic and Tradeoffs
 

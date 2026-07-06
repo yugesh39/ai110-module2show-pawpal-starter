@@ -66,9 +66,28 @@ pytest --cov
 
 Sample test output:
 
-```
-# Paste your pytest output here
-```
+Daily plan for Jordan's pets (07:00–19:00):
+
+  07:00–07:05  [Biscuit] Give heartworm medication (priority: critical)
+  07:05–07:10  [Whiskers] Wet food feeding (priority: critical)
+  07:10–07:20  [Biscuit] Breakfast feeding (priority: critical)
+  07:20–07:30  [Whiskers] Litter box cleaning (priority: high)
+  07:30–08:00  [Biscuit] Morning walk (priority: high)
+  08:00–08:30  [Biscuit] Evening walk (priority: high)
+  08:30–08:45  [Whiskers] Play with feather toy (priority: medium)
+  08:45–08:55  [Whiskers] Nail trim (priority: low)
+  08:55–09:10  [Biscuit] Brushing (priority: low)
+
+Reasoning log:
+  - Scheduled 'Give heartworm medication' for Biscuit (critical) at 07:00
+  - Scheduled 'Wet food feeding' for Whiskers (critical) at 07:05
+  - Scheduled 'Breakfast feeding' for Biscuit (critical) at 07:10
+  - Scheduled 'Litter box cleaning' for Whiskers (high) at 07:20
+  - Scheduled 'Morning walk' for Biscuit (high) at 07:30
+  - Scheduled 'Evening walk' for Biscuit (high) at 08:00
+  - Scheduled 'Play with feather toy' for Whiskers (medium) at 08:30
+  - Scheduled 'Nail trim' for Whiskers (low) at 08:45
+  - Scheduled 'Brushing' for Biscuit (low) at 08:55
 
 ## 📐 Smarter Scheduling
 

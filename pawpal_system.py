@@ -13,6 +13,7 @@ class Owner:
     """Represents the pet owner and their daily availability."""
 
     def __init__(self, name: str, available_start: str, available_end: str):
+        """Initialize an owner with a name and their daily availability window."""
         self.name = name
         self.available_start = available_start   # e.g. "07:00"
         self.available_end = available_end       # e.g. "21:00"
@@ -31,6 +32,7 @@ class Pet:
     """Represents a single pet and the tasks associated with it."""
 
     def __init__(self, name: str, species: str, breed: str = ""):
+        """Initialize a pet with a name, species, optional breed, and an empty task list."""
         self.name = name
         self.species = species
         self.breed = breed
@@ -62,6 +64,7 @@ class Task:
         category: str = "general",
         preferred_time: str = None,
     ):
+        """Initialize a task with a unique id, name, duration, priority, category, and optional preferred time."""
         self.id = str(uuid.uuid4())[:8]
         self.name = name
         self.duration_minutes = duration_minutes
@@ -82,6 +85,7 @@ class Scheduler:
     """Generates a daily plan for a pet based on an owner's availability."""
 
     def __init__(self, owner: "Owner", pet: "Pet"):
+        """Initialize the scheduler with the owner and pet it will build a plan for."""
         self.owner = owner
         self.pet = pet
 
