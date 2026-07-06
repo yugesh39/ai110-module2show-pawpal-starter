@@ -1,3 +1,4 @@
+
 # PawPal+ (Module 2 Project)
 
 You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
@@ -44,28 +45,7 @@ pip install -r requirements.txt
 
 ## 🖥️ Sample Output
 
-Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
-
 ```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
-```
-
-## 🧪 Testing PawPal+
-
-```bash
-# Run the full test suite:
-pytest
-
-# Run with coverage:
-pytest --cov
-```
-
-Sample test output:
-
 Daily plan for Jordan's pets (07:00–19:00):
 
   07:00–07:05  [Biscuit] Give heartworm medication (priority: critical)
@@ -88,17 +68,41 @@ Reasoning log:
   - Scheduled 'Play with feather toy' for Whiskers (medium) at 08:30
   - Scheduled 'Nail trim' for Whiskers (low) at 08:45
   - Scheduled 'Brushing' for Biscuit (low) at 08:55
+```
+
+## 🧪 Testing PawPal+
+
+```bash
+# Run the full test suite:
+pytest
+
+# Run with coverage:
+pytest --cov
+```
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
+These features were added on top of the base priority/duration scheduler to make PawPal+ handle a
+real household's messier reality: tasks entered out of order, tasks that repeat, and tasks that
+collide on the clock.
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Time-based sorting | `Scheduler.sort_by_time()` | Sorts tasks chronologically by `preferred_time` ("HH:MM"). Tasks with no `preferred_time` are pushed to the end instead of erroring. Defaults to sorting every pet's tasks, not just one. |
+| Filtering | `Scheduler.filter_tasks()` | Filters tasks across all of the owner's pets by `completed` status and/or `pet_name`, independently or combined. |
+| Conflict detection | `Scheduler.detect_conflicts()` | Lightweight check: groups incomplete tasks by exact `preferred_time` and returns a human-readable warning for any time with more than one task, whether same pet or different pets. Never raises — returns warnings instead of crashing. Automatically included in `Scheduler.generate_plan()`'s log. |
+| Recurring tasks | `Task.next_occurrence()`, `Pet.mark_task_complete()`, `Scheduler.mark_task_complete()` | Completing a `"daily"` or `"weekly"` task automatically spawns a fresh, incomplete copy of it for the next occurrence. `Pet.mark_task_complete()` does this for one pet; `Scheduler.mark_task_complete()` searches across every pet the owner has. `Scheduler.generate_plan()` excludes already-completed tasks so a finished task and its new copy don't both get scheduled. |
+
+### Design notes
+
+- **Sorting** uses a tuple sort key (`(preferred_time is None, preferred_time or "")`) rather than
+  parsing into `datetime` objects — since `"HH:MM"` strings are zero-padded, plain string comparison
+  already sorts them correctly.
+- **Conflict detection** intentionally checks for exact time matches rather than full interval
+  overlap (e.g., a 30-minute task at 08:00 vs. one starting at 08:15). See `reflection.md` (section
+  2b) for the reasoning behind that tradeoff.
+- **Recurring tasks** don't track a calendar date — "next occurrence" just means an identical,
+  not-yet-completed copy. It relies on whatever schedules tasks to only surface it on the right day.
 
 ## 📸 Demo Walkthrough
 

@@ -21,14 +21,27 @@ All four relationships from the diagram are present in the skeleton. Nothing's m
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+Priority (critical > high > medium > low), duration vs. remaining
+available time, preferred time (for anchoring/sorting), completion
+status (skips completed tasks), and recurrence frequency (daily/weekly
+tasks regenerate). Priority and time budget came first — a pet-care app's main job is making
+sure urgent things (meds, feeding) get done before the day runs out of
+minutes. Preferred time and recurrence were added next since real
+schedules have fixed appointments and repeating chores. Full conflict
+overlap was deliberately left simpler (see 2b) since it mattered less
+than getting the core priority/time logic right first.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
-
+detect_conflicts() flags a conflict only when two tasks share the exact
+same preferred_time string. It doesn't check overlapping durations, so
+a 30-minute task at 08:00 and another task starting at 08:15 wouldn't be
+caught, even though they truly overlap.
+Exact-match checking is a simple, fast grouping pass, while true overlap
+detection needs interval math and more edge-case handling. For a personal
+pet-care app, the realistic failure mode is two tasks accidentally set to
+the same clock time — not near-miss overlaps — so the simple check covers
+the case that matters most without added complexity.
 ---
 
 ## 3. AI Collaboration
