@@ -22,6 +22,26 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
+## ✨ Features
+
+- **Priority/duration scheduling** — `Scheduler.generate_plan()` orders tasks by priority
+  (critical > high > medium > low), then by duration, and fits as many as possible into the
+  owner's available time window, explaining each decision in a reasoning log.
+- **Sorting by time** — `Scheduler.sort_by_time()` orders tasks chronologically by
+  `preferred_time` ("HH:MM"), pushing tasks with no set time to the end instead of erroring.
+  Works across a single pet's tasks or every pet the owner has.
+- **Filtering** — `Scheduler.filter_tasks()` narrows the task list by completion status and/or
+  pet name, independently or combined (e.g., "Milo's incomplete tasks only").
+- **Conflict warnings** — `Scheduler.detect_conflicts()` flags any two (or more) tasks pinned to
+  the exact same time, whether they belong to the same pet or different pets, and returns a plain
+  warning message rather than crashing.
+- **Daily/weekly recurrence** — `Pet.mark_task_complete()` / `Scheduler.mark_task_complete()`
+  automatically spawn a fresh, not-yet-done copy of a task when a `"daily"` or `"weekly"` task is
+  completed, so recurring chores keep reappearing without manual re-entry. Completing an
+  already-completed task is a safe no-op rather than spawning duplicates.
+- **Time-budget skipping** — tasks that would run past the owner's `available_end` are skipped
+  (not scheduled) and reported separately, so the plan never silently overflows the day.
+
 ## Getting started
 
 ### Setup
@@ -155,12 +175,145 @@ collide on the clock.
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+### Main UI features (Streamlit app)
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+- **Add pets** — enter a name and species; each pet gets its own independent task list.
+- **Add tasks** — set a title, duration, priority, and recurrence (`once`/`daily`/`weekly`), and
+  optionally pin the task to a specific time of day.
+- **View, sort, and filter tasks** — toggle between time-order and priority-order, and filter the
+  visible list by completion status and/or by pet.
+- **Mark tasks complete** — a "Mark complete" button per task; completing a recurring task
+  automatically adds its next occurrence back onto the list.
+- **Conflict check** — a live panel that warns (via `st.warning`) whenever two tasks share the
+  same scheduled time, or confirms (via `st.success`) that nothing conflicts.
+- **Build a schedule** — generates a full day's plan for a chosen pet, showing the scheduled
+  tasks, anything that had to be skipped, any conflicts, and the scheduler's reasoning log.
+
+### Example workflow
+
+1. Add a pet, e.g. "Rex" (dog).
+2. Add a task for Rex: "Morning walk," 30 minutes, high priority, pinned to `08:00`.
+3. Add a second task at the same time, e.g. "Vet call" at `08:00`, to see the conflict warning
+   appear.
+4. Switch the sort control to "Time" to see both tasks ordered chronologically instead of by
+   priority.
+5. Click "Generate schedule" to see the full day's plan, including which tasks were scheduled,
+   which were skipped for lack of time, and the conflict warning surfaced again inside the plan.
+6. Mark the "Morning walk" task complete — if it were set to `daily`, a fresh copy of it would
+   reappear in the task list automatically.
+
+### Key Scheduler behaviors shown
+
+- **Sorting** — `sort_by_time()` puts scrambled tasks back into chronological order.
+- **Filtering** — narrowing to one pet's tasks, or only incomplete tasks, or both together.
+- **Conflict warnings** — two tasks (same pet or different pets) pinned to the same time both get
+  flagged, with no crash.
+- **Recurrence** — completing a `daily`/`weekly` task spawns its next occurrence; completing a
+  `once` task or an already-completed task does not.
+
+### Sample CLI output (`python main.py`)
+
+```
+All tasks, in the order they were added (out of order)
+------------------------------------------------------
+  [○] 18:00  Evening walk (30min, high)
+  [✓] 07:30  Breakfast (10min, critical, daily)
+  [○] --:--  Fetch in the yard (20min, low)
+  [○] 12:30  Midday potty break (10min, medium)
+  [○] 09:00  Litter box scoop (5min, medium, daily)
+  [○] 19:00  Evening feeding (10min, high)
+  [✓] 08:00  Brushing (15min, low, weekly)
+
+All tasks, sorted chronologically by preferred_time
+---------------------------------------------------
+  [✓] 07:30  Breakfast (10min, critical, daily)
+  [✓] 08:00  Brushing (15min, low, weekly)
+  [○] 09:00  Litter box scoop (5min, medium, daily)
+  [○] 12:30  Midday potty break (10min, medium)
+  [○] 18:00  Evening walk (30min, high)
+  [○] 19:00  Evening feeding (10min, high)
+  [○] --:--  Fetch in the yard (20min, low)
+
+Incomplete tasks (all pets)
+---------------------------
+  [○] 18:00  Evening walk (30min, high)
+  [○] --:--  Fetch in the yard (20min, low)
+  [○] 12:30  Midday potty break (10min, medium)
+  [○] 09:00  Litter box scoop (5min, medium, daily)
+  [○] 19:00  Evening feeding (10min, high)
+
+Completed tasks (all pets)
+--------------------------
+  [✓] 07:30  Breakfast (10min, critical, daily)
+  [✓] 08:00  Brushing (15min, low, weekly)
+
+Rex's tasks only
+----------------
+  [○] 18:00  Evening walk (30min, high)
+  [✓] 07:30  Breakfast (10min, critical, daily)
+  [○] --:--  Fetch in the yard (20min, low)
+  [○] 12:30  Midday potty break (10min, medium)
+
+Milo's incomplete tasks only
+----------------------------
+  [○] 09:00  Litter box scoop (5min, medium, daily)
+  [○] 19:00  Evening feeding (10min, high)
+
+Rex's tasks BEFORE completing the daily 'Fetch in the yard'
+-------------------------------------------------------------
+  [○] 18:00  Evening walk (30min, high)
+  [✓] 07:30  Breakfast (10min, critical, daily)
+  [○] --:--  Fetch in the yard (20min, low)
+  [○] 12:30  Midday potty break (10min, medium)
+
+Rex's tasks AFTER completing it (a fresh occurrence should appear)
+----------------------------------------------------------------------
+  [○] 18:00  Evening walk (30min, high)
+  [✓] 07:30  Breakfast (10min, critical, daily)
+  [✓] --:--  Fetch in the yard (20min, low, daily)
+  [○] 12:30  Midday potty break (10min, medium)
+  [○] --:--  Fetch in the yard (20min, low, daily)
+
+Milo's tasks BEFORE completing the daily litter box scoop
+-----------------------------------------------------------
+  [○] 09:00  Litter box scoop (5min, medium, daily)
+  [○] 19:00  Evening feeding (10min, high)
+  [✓] 08:00  Brushing (15min, low, weekly)
+
+Milo's tasks AFTER completing it
+--------------------------------
+  [✓] 09:00  Litter box scoop (5min, medium, daily)
+  [○] 19:00  Evening feeding (10min, high)
+  [✓] 08:00  Brushing (15min, low, weekly)
+  [○] 09:00  Litter box scoop (5min, medium, daily)
+
+Generated plan for Rex
+-----------------------
+  Scheduled 'Evening walk' (high priority) from 07:00 to 07:30.
+  Scheduled 'Midday potty break' (medium priority) from 07:30 to 07:40.
+  Scheduled 'Fetch in the yard' (low priority) from 07:40 to 08:00.
+
+Rex's tasks after adding a same-time conflict
+---------------------------------------------
+  [○] 18:00  Evening walk (30min, high)
+  [✓] 07:30  Breakfast (10min, critical, daily)
+  [✓] --:--  Fetch in the yard (20min, low, daily)
+  [○] 12:30  Midday potty break (10min, medium)
+  [○] --:--  Fetch in the yard (20min, low, daily)
+  [○] 12:30  Vet call (15min, medium)
+
+Milo's tasks after adding a cross-pet conflict
+------------------------------------------------
+  [✓] 09:00  Litter box scoop (5min, medium, daily)
+  [○] 19:00  Evening feeding (10min, high)
+  [✓] 08:00  Brushing (15min, low, weekly)
+  [○] 09:00  Litter box scoop (5min, medium, daily)
+  [○] 18:00  Vet appointment prep (10min, high)
+
+Conflict check
+--------------
+  ⚠ Conflict at 12:30: Rex's 'Midday potty break', Rex's 'Vet call' are all scheduled at the same time.
+  ⚠ Conflict at 18:00: Rex's 'Evening walk', Milo's 'Vet appointment prep' are all scheduled at the same time.
+```
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->

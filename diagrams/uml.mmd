@@ -16,6 +16,7 @@ classDiagram
         +add_task(task: Task) void
         +edit_task(task_id: string, updates: dict) bool
         +remove_task(task_id: string) void
+        +mark_task_complete(task_id: string) bool
     }
 
     class Task {
@@ -25,7 +26,12 @@ classDiagram
         -string priority
         -string category
         -string preferred_time
+        -bool completed
+        -string frequency
         +priority_value() int
+        +mark_complete() void
+        +mark_incomplete() void
+        +next_occurrence() Task
         +edit(kwargs: dict) void
     }
 
@@ -33,6 +39,10 @@ classDiagram
         -Owner owner
         -Pet pet
         +generate_plan() dict
+        +detect_conflicts() List~string~
+        +sort_by_time(tasks: List~Task~) List~Task~
+        +filter_tasks(completed: bool, pet_name: string) List~Task~
+        +mark_task_complete(task_id: string) bool
         -_sort_tasks(tasks: List~Task~) List~Task~
         -_allocate_time(current_time: string, duration: int) tuple
     }
@@ -41,3 +51,7 @@ classDiagram
     Pet "1" *-- "many" Task : has
     Scheduler "1" --> "1" Owner : uses
     Scheduler "1" --> "1" Pet : uses
+
+    note for Task "frequency: \"once\" | \"daily\" | \"weekly\".\nnext_occurrence() returns a fresh, incomplete\ncopy for recurring tasks; called by\nPet.mark_task_complete(), not by most callers directly."
+    note for Pet "mark_task_complete() marks the task done\nand, if frequency is daily/weekly, appends the\nresult of task.next_occurrence() back onto\nthis pet's own task list."
+    note for Scheduler "Constructed with ONE owner + ONE pet, but\ndetect_conflicts(), sort_by_time(), filter_tasks(),\nand mark_task_complete() all operate across\nEVERY pet in owner.pets -- only generate_plan()\nand _sort_tasks()/_allocate_time() are scoped to self.pet."
