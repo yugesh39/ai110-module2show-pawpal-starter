@@ -8,6 +8,7 @@ Phase 3: sort_by_time() and filter_tasks() added to Scheduler,
 """
 
 import uuid
+from collections import defaultdict
 from datetime import datetime, timedelta
 
 
@@ -72,6 +73,8 @@ class Pet:
         """
         for task in self.tasks:
             if task.id == task_id:
+                if task.completed:
+                    return True  # already handled; don't spawn a duplicate occurrence
                 task.mark_complete()
                 if task.frequency in ("daily", "weekly"):
                     self.add_task(task.next_occurrence())
@@ -237,13 +240,13 @@ class Scheduler:
         strings; an empty list means no conflicts were found.
         """
         warnings = []
-        by_time: dict[str, list[tuple["Pet", "Task"]]] = {}
+        by_time: dict[str, list[tuple["Pet", "Task"]]] = defaultdict(list)
 
         for pet in self.owner.pets:
             for task in pet.tasks:
                 if not task.preferred_time or task.completed:
                     continue
-                by_time.setdefault(task.preferred_time, []).append((pet, task))
+                by_time[task.preferred_time].append((pet, task))
 
         for time_str, entries in sorted(by_time.items()):
             if len(entries) > 1:

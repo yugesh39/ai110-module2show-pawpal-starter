@@ -1,4 +1,3 @@
-
 # PawPal+ (Module 2 Project)
 
 You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
@@ -72,13 +71,63 @@ Reasoning log:
 
 ## 🧪 Testing PawPal+
 
-```bash
-# Run the full test suite:
-pytest
+### Running the tests
 
-# Run with coverage:
+```bash
+python -m pytest
+```
+
+For a coverage report:
+
+```bash
 pytest --cov
 ```
+
+### What the tests cover
+
+The suite lives in `tests/test_pawpal.py` (24 tests) and is organized around the four "Smarter
+Scheduling" behaviors described below, plus the core plan-generation logic:
+
+- **Sorting** — chronological ordering by `preferred_time`, tasks with no preferred time sorting
+  last, day-boundary times (`00:00`/`23:59`), stable ordering for duplicate times, and an empty
+  task list.
+- **Recurring tasks** — completing a `"daily"` or `"weekly"` task spawns a fresh, incomplete copy;
+  a `"once"` task does not; completing an already-completed task id is a no-op rather than spawning
+  a duplicate; `mark_task_complete()` on a missing id or empty pet returns `False` instead of
+  raising; the Scheduler-level version searches across every pet the owner has.
+- **Filtering** — filtering by completion status and/or pet name, independently and combined, an
+  unmatched pet name returning an empty list, and case-insensitive name matching.
+- **Plan generation / time budget** — tasks too long for the remaining window get skipped, a
+  zero-duration task doesn't hang the scheduler, a zero-minute day skips everything cleanly, and
+  already-completed tasks are excluded from the generated plan.
+- **Conflict detection** — same-pet and cross-pet conflicts at an identical `preferred_time`,
+  three-or-more-way conflicts listing every task involved, completed tasks never being flagged,
+  and tasks with no `preferred_time` never being flagged.
+
+### Sample successful run
+
+```
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/claude
+collected 24 items
+
+tests/test_pawpal.py ........................                            [100%]
+
+============================== 24 passed in 0.03s ==============================
+```
+
+### Confidence Level
+
+⭐⭐⭐⭐☆ (4/5)
+
+All 24 tests pass, covering sorting, recurrence, filtering, conflict detection, and the core
+time-budget scheduling logic, including several edge cases (zero-duration tasks, empty task lists,
+already-completed recurring tasks). I'm holding back one star because conflict detection is
+intentionally limited to exact time matches rather than true interval overlap (see `reflection.md`,
+section 2b) — a known, accepted gap rather than an untested one. I'd also want a few more tests
+around malformed input (e.g., an invalid `preferred_time` string) before calling this
+production-ready.
 
 ## 📐 Smarter Scheduling
 
